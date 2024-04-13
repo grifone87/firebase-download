@@ -3,24 +3,25 @@ import firebase_admin
 from firebase_admin import credentials, firestore, storage
 from urllib.parse import urlparse, unquote
 
-
 def initialize_firebase():
-    cred = credentials.Certificate('credit.json')
-    firebase_admin.initialize_app(
-        cred, {'storageBucket': 'example.appspot.com'})
-
+    # Use environment variables to load credentials and bucket info securely
+    cred_path = os.environ.get('FIREBASE_CREDENTIALS', 'path_to_default_credentials.json')
+    bucket_name = os.environ.get('FIREBASE_BUCKET_NAME', 'example.appspot.com')
+    
+    cred = credentials.Certificate(cred_path)
+    firebase_admin.initialize_app(cred, {'storageBucket': bucket_name})
 
 def clean_filename(url):
     parsed = urlparse(url)
     filename = os.path.basename(parsed.path)
     filename = unquote(filename)
-    return filename.replace('?', '_').replace('&', '_')
-
+    return filename.replace('?', '_').replace('&', '_').replace('%', '_')
 
 def download_photos():
     initialize_firebase()
     bucket = storage.bucket()
     db = firestore.client()
+    
     download_folder = 'downloaded_photos'
     if not os.path.exists(download_folder):
         os.makedirs(download_folder)
@@ -36,7 +37,7 @@ def download_photos():
         if not os.path.exists(doc_folder_path):
             os.makedirs(doc_folder_path)
 
-        photos = doc_dict.get('collection_name', {})
+        photos = doc_dict.get('photos', {})
         for photo_name, photo_details in photos.items():
             if isinstance(photo_details, dict) and 'url' in photo_details:
                 photo_url = photo_details['url']
@@ -48,7 +49,6 @@ def download_photos():
                     print(f'Downloaded {photo_url} to {local_file_path}')
                 except Exception as e:
                     print(f"Failed to download {photo_url}: {str(e)}")
-
 
 if __name__ == '__main__':
     download_photos()
