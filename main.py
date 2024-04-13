@@ -2,10 +2,11 @@ import os
 import firebase_admin
 from firebase_admin import credentials, firestore, storage
 
-# Initialize Firebase using your credentials
-cred = credentials.Certificate('service.json')
-firebase_admin.initialize_app(
-    cred, {'storageBucket': 'controlpic.appspot.com'})
+def initialize_firebase():
+    # NOTE: Replace with the path to your Firebase service account key JSON file
+    cred = credentials.Certificate('path/to/your/serviceAccountKey.json')
+    firebase_admin.initialize_app(cred, {'storageBucket': 'your-firebase-storage-bucket'})
+
 
 
 def get_blob_path_from_url(url):
